@@ -4,8 +4,6 @@ import { Request, Response } from "express";
 import {Server} from "socket.io"
 const app = express();
 import cors from "cors"
-import { Socket } from "socket.io";
-import { emit } from "cluster";
 app.use(cors())
 app.get("/", (req: Request, res: Response) => {
   res.send("this is homepage");
@@ -18,8 +16,8 @@ io.on("connection",(socket)=>{              //Listens for new clients connecting
                                          // which represents their connection to the server.  This function runs once per connected client.
                                             //  The "connection" string is a event name,"connection" is a special built-in Socket.IO event that fires whenever a new client connects to the server.
     console.log("user connected" ,socket.id)
-    socket.on("message_sent",(data)=>{ //listens for a custom event named "message_sent" and runs the callback function whenever that event fires.
-        io.emit("receive_message",data)
+    socket.on("send_message",(data)=>{ //listens for a custom event named "send_message" and runs the callback function whenever that event fires.
+        io.emit("receive_message",data)  //.emit("event_name",data_value) is a method used to trigger a event . This line TRIGGERS (or emits) the "receive_message" event on all clients
         console.log(data)
 
     })
