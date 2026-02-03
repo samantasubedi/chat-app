@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { io } from "socket.io-client";
 
 import moment from "moment";
-type messageType = {
+type sentMessageType = {
   message: string;
   timeStamp: string | Date;
 };
@@ -14,6 +14,7 @@ type actualMessageType = {
   message: string;
   date: string;
   time: string;
+  username: string;
 };
 let socket: Socket;
 const HomePage = () => {
@@ -25,7 +26,7 @@ const HomePage = () => {
     if (message.trim() == "") {
       return;
     }
-    const messageData = {
+    const messageData: sentMessageType = {
       message: message,
       timeStamp: new Date().toISOString(),
     };
@@ -37,13 +38,14 @@ const HomePage = () => {
   };
   useEffect(() => {
     socketRef.current = io("http://localhost:4000");
-    socketRef.current.on("receive_message", (data: messageType) => {
+    socketRef.current.on("receive_message", ({ Username, data }) => {
       const dt = moment(data.timeStamp);
 
       const retrivedMessage: actualMessageType = {
         message: data.message,
         date: dt.format("YYYY-MM-DD"),
         time: dt.format("hh:mm A"),
+        username: Username,
       };
 
       setmessages((prev) => [...prev, retrivedMessage]);
@@ -52,9 +54,34 @@ const HomePage = () => {
       socketRef.current?.disconnect();
     };
   }, []);
+  const [Username, setUsername] = useState("");
+
+  const [IsSetUsername, setIsSetUsername] = useState(false);
 
   return (
     <div>
+      {!IsSetUsername && (
+        <div>
+          {" "}
+          <p>set your username</p>
+          <input
+            value={Username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
+          ></input>
+          <Button
+            onClick={() => {
+              if(Username.trim()==""){return}
+              setIsSetUsername(true);
+              socketRef.current?.emit("join", Username);
+              console.log("this is username in frontend", Username);
+            }}
+          >
+            set
+          </Button>
+        </div>
+      )}
       <div className="flex justify-center mt-10 gap-3">
         <input
           className="px-2 bg-blue-100 rounded-lg"
@@ -71,6 +98,7 @@ const HomePage = () => {
           {messages.map((curr, i) => {
             return (
               <div key={i} className="bg-white p-2 rounded-2xl">
+                <span className="text-gray-700">{curr.username}</span>
                 <span className="p-4">{curr.message}</span>
                 <div className="flex gap-5">
                   <span>{curr.date}</span>
