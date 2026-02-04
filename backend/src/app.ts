@@ -11,7 +11,7 @@ app.get("/", (req: Request, res: Response) => {
 
 const server = http.createServer(app); //Socket.IO works on top of a raw HTTP server.Here, we’re creating a Node.js HTTP server that wraps the Express app.
 const io = new Server(server, { cors: { origin: "*" } }); //creates a Socket.IO server attached to our HTTP server
-
+let allUsers: string[] = [];
 io.on("connection", (socket) => {
   //Listens for new clients connecting via Socket.IO. Each connected client gets a socket object,
   // which represents their connection to the server.  This function runs once per connected client.
@@ -19,6 +19,8 @@ io.on("connection", (socket) => {
   console.log("user connected", socket.id);
   socket.on("join", (Username) => {
     socket.data.username = Username;
+    allUsers.push(Username);
+    io.emit("take_usernames", allUsers);
   });
   socket.on("send_message", (data) => {
     //listens for a custom event named "send_message" and runs the callback function whenever that event fires.
@@ -26,6 +28,8 @@ io.on("connection", (socket) => {
     console.log(data, socket.data.username);
   });
   socket.on("disconnect", () => {
+allUsers=allUsers.filter((cur) => socket.data.username !== cur);
+  io.emit("take_usernames", allUsers);
     console.log("user disconnected", socket.id);
   });
 });
