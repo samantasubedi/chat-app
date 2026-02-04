@@ -21,6 +21,10 @@ const HomePage = () => {
   const [message, setmessage] = useState<string>("");
   const [messages, setmessages] = useState<actualMessageType[]>([]);
   const socketRef = useRef<Socket | null>(null);
+  const [Username, setUsername] = useState("");
+  const [ConfirmUsername, setConfrmUsername] = useState("");
+  const [allusers, setallusers] = useState([]);
+  const elementref=useRef<HTMLDivElement|null>(null)
 
   const handleSend = () => {
     if (message.trim() == "") {
@@ -38,6 +42,7 @@ const HomePage = () => {
   };
   useEffect(() => {
     socketRef.current = io("http://localhost:4000");
+    socketRef.current.on("take_usernames", (names) => {setallusers(names)});
     socketRef.current.on("receive_message", ({ Username, data }) => {
       const dt = moment(data.timeStamp);
 
@@ -54,10 +59,11 @@ const HomePage = () => {
       socketRef.current?.disconnect();
     };
   }, []);
-  const [Username, setUsername] = useState("");
-  const [ConfirmUsername, setConfrmUsername] = useState("");
+  useEffect(()=>{
+    const el=elementref.current
+    if(!el){return}
+   el.scrollTop=el.scrollHeight},[messages])
 
-  
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       {!ConfirmUsername ? (
@@ -85,7 +91,7 @@ const HomePage = () => {
           </div>
         </div>
       ) : (
-        <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] border border-slate-100">
+        <div className="w-full  max-w-2xl bg-white rounded-3xl shadow-2xl  flex flex-col h-[80vh] ">
           <div className="px-6 py-4 bg-white border-b border-slate-100 flex justify-between items-center">
             <div>
               <p className="text-xs text-green-500 flex items-center gap-1">
@@ -97,7 +103,11 @@ const HomePage = () => {
               @{ConfirmUsername}
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4">
+          <div className="flex">
+            <div className="flex  flex-col p-5 w-30 rounded-2xl rounded-l-none bg-blue-100 h-fit">
+              <p className="text-sm  ">Active users</p>
+          <div className="flex flex-col gap-3 break-all ">{allusers.map((curr,i)=>{return(<div key={i}>{curr}</div>)})}</div></div>
+          <div ref={elementref} className=" h-115 flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4 ">
             {messages.map((curr, i) => {
               const isMe = curr.username === ConfirmUsername;
               return (
@@ -125,7 +135,7 @@ const HomePage = () => {
                 </div>
               );
             })}
-          </div>
+          </div></div>
 
           <div className="p-4 bg-white border-t border-slate-100">
             <div className="flex gap-2 items-center bg-slate-100 p-2 rounded-2xl">
