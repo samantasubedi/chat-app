@@ -55,60 +55,97 @@ const HomePage = () => {
     };
   }, []);
   const [Username, setUsername] = useState("");
+  const [ConfirmUsername, setConfrmUsername] = useState("");
 
-  const [IsSetUsername, setIsSetUsername] = useState(false);
-
+  
   return (
-    <div>
-      {!IsSetUsername && (
-        <div>
-          {" "}
-          <p>set your username</p>
-          <input
-            value={Username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-            }}
-          ></input>
-          <Button
-            onClick={() => {
-              if(Username.trim()==""){return}
-              setIsSetUsername(true);
-              socketRef.current?.emit("join", Username);
-              console.log("this is username in frontend", Username);
-            }}
-          >
-            set
-          </Button>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+      {!ConfirmUsername ? (
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome!</h2>
+          <p className="text-slate-500 mb-6">
+            Please set a username to start chatting.
+          </p>
+          <div className="space-y-4">
+            <input
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="e.g. ram12"
+              value={Username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <Button
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-all"
+              onClick={() => {
+                setConfrmUsername(Username);
+                socketRef.current?.emit("join", Username);
+              }}
+            >
+              Join Chatroom
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] border border-slate-100">
+          <div className="px-6 py-4 bg-white border-b border-slate-100 flex justify-between items-center">
+            <div>
+              <p className="text-xs text-green-500 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full "></span>{" "}
+                Online
+              </p>
+            </div>
+            <span className="text-sm text-slate-400 font-medium">
+              @{ConfirmUsername}
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4">
+            {messages.map((curr, i) => {
+              const isMe = curr.username === ConfirmUsername;
+              return (
+                <div
+                  key={i}
+                  className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${
+                      isMe
+                        ? "bg-blue-600 text-white rounded-tr-none"
+                        : "bg-white text-slate-800 rounded-tl-none border border-slate-100"
+                    }`}
+                  >
+                    {!isMe && (
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
+                        {curr.username}
+                      </p>
+                    )}
+                    <p className="text-sm leading-relaxed">{curr.message}</p>
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-1 px-1">
+                    {curr.time} • {curr.date}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="p-4 bg-white border-t border-slate-100">
+            <div className="flex gap-2 items-center bg-slate-100 p-2 rounded-2xl">
+              <input
+                className="flex-1 bg-transparent px-3 py-2 text-sm outline-none text-slate-700"
+                value={message}
+                placeholder="Write a message..."
+                onChange={(e) => setmessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              />
+              <Button
+                onClick={handleSend}
+                className="bg-blue-600 hover:bg-blue-700 text-white p-2 px-5 rounded-xl text-sm font-medium transition-colors"
+              >
+                Send
+              </Button>
+            </div>
+          </div>
         </div>
       )}
-      <div className="flex justify-center mt-10 gap-3">
-        <input
-          className="px-2 bg-blue-100 rounded-lg"
-          value={message}
-          placeholder="type your message"
-          onChange={(e) => {
-            setmessage(e.target.value);
-          }}
-        ></input>
-        <Button onClick={handleSend}>send</Button>
-      </div>
-      <div className="flex justify-center mt-10 ">
-        <div className="bg-purple-100 w-[70%] p-5 rounded-2xl flex flex-col gap-5 ">
-          {messages.map((curr, i) => {
-            return (
-              <div key={i} className="bg-white p-2 rounded-2xl">
-                <span className="text-gray-700">{curr.username}</span>
-                <span className="p-4">{curr.message}</span>
-                <div className="flex gap-5">
-                  <span>{curr.date}</span>
-                  <span>{curr.time}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };
