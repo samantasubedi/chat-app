@@ -23,8 +23,8 @@ const HomePage = () => {
   const socketRef = useRef<Socket | null>(null);
   const [Username, setUsername] = useState("");
   const [ConfirmUsername, setConfrmUsername] = useState("");
-  const [allusers, setallusers] = useState([]);
-  const elementref=useRef<HTMLDivElement|null>(null)
+  const [allusers, setallusers] = useState<string[]>([]);
+  const elementref = useRef<HTMLDivElement | null>(null);
 
   const handleSend = () => {
     if (message.trim() == "") {
@@ -42,7 +42,9 @@ const HomePage = () => {
   };
   useEffect(() => {
     socketRef.current = io("http://localhost:4000");
-    socketRef.current.on("take_usernames", (names) => {setallusers(names)});
+    socketRef.current.on("take_usernames", (names) => {
+      setallusers(names);
+    });
     socketRef.current.on("receive_message", ({ Username, data }) => {
       const dt = moment(data.timeStamp);
 
@@ -59,10 +61,13 @@ const HomePage = () => {
       socketRef.current?.disconnect();
     };
   }, []);
-  useEffect(()=>{
-    const el=elementref.current
-    if(!el){return}
-   el.scrollTop=el.scrollHeight},[messages])
+  useEffect(() => {
+    const el = elementref.current;
+    if (!el) {
+      return;
+    }
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
@@ -91,11 +96,11 @@ const HomePage = () => {
           </div>
         </div>
       ) : (
-        <div className="w-full  max-w-2xl bg-white rounded-3xl shadow-2xl  flex flex-col h-[80vh] ">
+        <div className="w-full max-w-[60%] bg-white rounded-3xl shadow-2xl  flex flex-col h-[80vh] ">
           <div className="px-6 py-4 bg-white border-b border-slate-100 flex justify-between items-center">
             <div>
               <p className="text-xs text-green-500 flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full "></span>{" "}
+                <span className="w-2 h-2 bg-green-500 rounded-full "></span>
                 Online
               </p>
             </div>
@@ -104,40 +109,68 @@ const HomePage = () => {
             </span>
           </div>
           <div className="flex">
-            <div className="flex  flex-col p-5 w-30 rounded-2xl rounded-l-none bg-blue-100 h-fit">
+            {/* <div className="flex  flex-col p-5 w-30 rounded-2xl rounded-l-none bg-blue-100 h-fit">
               <p className="text-sm  ">Active users</p>
-          <div className="flex flex-col gap-3 break-all ">{allusers.map((curr,i)=>{return(<div key={i}>{curr}</div>)})}</div></div>
-          <div ref={elementref} className=" h-115 flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4 ">
-            {messages.map((curr, i) => {
-              const isMe = curr.username === ConfirmUsername;
-              return (
-                <div
-                  key={i}
-                  className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${
-                      isMe
-                        ? "bg-blue-600 text-white rounded-tr-none"
-                        : "bg-white text-slate-800 rounded-tl-none border border-slate-100"
-                    }`}
-                  >
-                    {!isMe && (
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
-                        {curr.username}
-                      </p>
-                    )}
-                    <p className="text-sm leading-relaxed">{curr.message}</p>
-                  </div>
-                  <span className="text-[10px] text-slate-400 mt-1 px-1">
-                    {curr.time} • {curr.date}
-                  </span>
-                </div>
-              );
-            })}
-          </div></div>
+          <div className="flex flex-col gap-3 break-all ">{allusers.map((curr,i)=>{return(<div key={i}>{curr}</div>)})}</div></div> */}
+            <div className="flex flex-col w-64 h-full border-l border-slate-200 bg-gray-100">
+              <div className="p-5 border-b border-slate-200 ">
+                <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+                  Active Users
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {allusers.length} Online
+                </p>
+              </div>
 
-          <div className="p-4 bg-white border-t border-slate-100">
+              <div className="flex-1 overflow-y-auto p-3 ">
+                {allusers.map((user, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all cursor-pointer group"
+                  >
+                    <div className="w-8 h-8 rounded-full flex justify-center items-center font-bold bg-linear-to-br from-purple-200 to bg-purple-800 text-white">
+                     <p>{user[0].toUpperCase()}</p> 
+                    </div>
+                    <div className="text-sm font-semibold">{user}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div
+              ref={elementref}
+              className=" h-120 flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4 "
+            >
+              {messages.map((curr, i) => {
+                const isMe = curr.username === ConfirmUsername;
+                return (
+                  <div
+                    key={i}
+                    className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-4 rounded-2xl shadow-sm wrap-break-words ${
+                        isMe
+                          ? "bg-blue-600 text-white rounded-tr-none"
+                          : "bg-white text-slate-800 rounded-tl-none border border-slate-100"
+                      }`}
+                    >
+                      {!isMe && (
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
+                          {curr.username}
+                        </p>
+                      )}
+                      <p className="text-sm leading-relaxed">{curr.message}</p>
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 px-1">
+                      {curr.time} • {curr.date}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="p-2 bg-white border border-slate-200 ">
             <div className="flex gap-2 items-center bg-slate-100 p-2 rounded-2xl">
               <input
                 className="flex-1 bg-transparent px-3 py-2 text-sm outline-none text-slate-700"
