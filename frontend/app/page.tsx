@@ -4,8 +4,10 @@ import { Socket } from "socket.io-client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { io } from "socket.io-client";
+import "dotenv/config";
 
 import moment from "moment";
+import { url } from "inspector";
 type sentMessageType = {
   message: string;
   timeStamp: string | Date;
@@ -17,6 +19,7 @@ type actualMessageType = {
   username: string;
 };
 let socket: Socket;
+
 const HomePage = () => {
   const [message, setmessage] = useState<string>("");
   const [messages, setmessages] = useState<actualMessageType[]>([]);
@@ -25,6 +28,7 @@ const HomePage = () => {
   const [ConfirmUsername, setConfrmUsername] = useState("");
   const [allusers, setallusers] = useState<string[]>([]);
   const elementref = useRef<HTMLDivElement | null>(null);
+  const URL: string = process.env.NEXT_PUBLIC_URL!;
 
   const handleSend = () => {
     if (message.trim() == "") {
@@ -41,7 +45,9 @@ const HomePage = () => {
     setmessage("");
   };
   useEffect(() => {
-    socketRef.current = io("http://localhost:4000");
+    if (!URL) return;
+    socketRef.current = io(URL);
+
     socketRef.current.on("take_usernames", (names) => {
       setallusers(names);
     });
@@ -60,7 +66,8 @@ const HomePage = () => {
     return () => {
       socketRef.current?.disconnect();
     };
-  }, []);
+  }, [URL]);
+
   useEffect(() => {
     const el = elementref.current;
     if (!el) {
@@ -109,7 +116,6 @@ const HomePage = () => {
             </span>
           </div>
           <div className="flex">
-          
             <div className="flex flex-col w-64 h-full border-l border-slate-200 bg-gray-100">
               <div className="p-5 border-b border-slate-200 ">
                 <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
@@ -127,7 +133,7 @@ const HomePage = () => {
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all cursor-pointer group"
                   >
                     <div className="w-8 h-8 rounded-full flex justify-center items-center font-bold bg-linear-to-br from-purple-200 to bg-purple-800 text-white">
-                     <p>{user[0].toUpperCase()}</p> 
+                      <p>{user[0].toUpperCase()}</p>
                     </div>
                     <div className="text-sm font-semibold">{user}</div>
                   </div>
