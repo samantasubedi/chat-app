@@ -115,7 +115,7 @@ const HomePage = () => {
               @{ConfirmUsername}
             </span>
           </div>
-          <div className="flex h-full">
+          <div className="flex h-[80%] ">
             <div className="flex flex-col md:w-64 w-25 h-full border-l border-slate-200 bg-gray-100 wrap-break-word break-all">
               <div className="md:p-5 border-b border-slate-200 ">
                 <h3 className="md:text-sm text-[10px] font-semibold text-slate-800 uppercase ">
@@ -175,7 +175,7 @@ const HomePage = () => {
           </div>
 <div className="flex-1  flex flex-col justify-end">
   <div className="flex md:justify-end">
-          <div className="p-2 bg-white   mb-4 md:w-[60%] w-full ">
+          <div className="p-2 bg-white  mb-4 md:w-[60%] w-full ">
             <div className="flex md:gap-2 md:items-center justify-between bg-slate-100 p-2 rounded-2xl">
               <input
                 className="flex-1 bg-transparent px-3 py-2 text-sm outline-none text-slate-700"
