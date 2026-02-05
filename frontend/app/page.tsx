@@ -109,9 +109,7 @@ const HomePage = () => {
             </span>
           </div>
           <div className="flex">
-            {/* <div className="flex  flex-col p-5 w-30 rounded-2xl rounded-l-none bg-blue-100 h-fit">
-              <p className="text-sm  ">Active users</p>
-          <div className="flex flex-col gap-3 break-all ">{allusers.map((curr,i)=>{return(<div key={i}>{curr}</div>)})}</div></div> */}
+          
             <div className="flex flex-col w-64 h-full border-l border-slate-200 bg-gray-100">
               <div className="p-5 border-b border-slate-200 ">
                 <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
