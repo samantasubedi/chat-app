@@ -5,9 +5,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { io } from "socket.io-client";
 import "dotenv/config";
-import UsernameInput from "@/components/ui/UsernameInput";
+import UsernameInput from "@/components/UsernameInput";
 import moment from "moment";
-import ChatUi from "@/components/ui/ChatUi";
+import ChatUi from "@/components/ChatUi";
 import { url } from "inspector";
 type sentMessageType = {
   message: string;
