@@ -11,25 +11,39 @@ app.get("/", (req: Request, res: Response) => {
 
 const server = http.createServer(app); //Socket.IO works on top of a raw HTTP server.Here, we’re creating a Node.js HTTP server that wraps the Express app.
 const io = new Server(server, { cors: { origin: "*" } }); //creates a Socket.IO server attached to our HTTP server
-let allUsers: string[] = [];
+let generalUsernames: string[] = [];
+let users = new Map();
 io.on("connection", (socket) => {
   //Listens for new clients connecting via Socket.IO. Each connected client gets a socket object,
-  // which represents their connection to the server.  This function runs once per connected client.
+  //  This function runs once per connected client.
   //  The "connection" string is a event name,"connection" is a special built-in Socket.IO event that fires whenever a new client connects to the server.
   console.log("user connected", socket.id);
   socket.on("join", (Username) => {
+    socket.join("general");
     socket.data.username = Username;
-    allUsers.push(Username);
-    io.emit("take_usernames", allUsers);
+    generalUsernames.push(Username);
+    users.set("general", generalUsernames);
+
+    io.to("general").emit("take_usernames_and_roomId", {
+      names: generalUsernames,
+      roomId: "general",
+    });
   });
   socket.on("send_message", (data) => {
-    //listens for a custom event named "send_message" and runs the callback function whenever that event fires.
-    io.emit("receive_message", { Username: socket.data.username, data }); //.emit("event_name",data_value) is a method used to trigger a event . This line TRIGGERS (or emits) the "receive_message" event on all clients
+    io.to(data.roomId).emit("receive_message", {
+      Username: socket.data.username,
+      data,
+    });
     console.log(data, socket.data.username);
   });
   socket.on("disconnect", () => {
-allUsers=allUsers.filter((cur) => socket.data.username !== cur);
-  io.emit("take_usernames", allUsers);
+    generalUsernames = generalUsernames.filter(
+      (cur) => socket.data.username !== cur,
+    );
+    io.emit("take_usernames_and_roomId", {
+      names: generalUsernames,
+      roomId: "general",
+    });
     console.log("user disconnected", socket.id);
   });
 });
