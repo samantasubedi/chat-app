@@ -12,12 +12,13 @@ import { url } from "inspector";
 type sentMessageType = {
   message: string;
   timeStamp: string | Date;
+  roomId: string;
 };
 export type actualMessageType = {
   message: string;
   date: string;
   time: string;
-  username: string;
+  userName: string;
 };
 let socket: Socket;
 
@@ -25,9 +26,10 @@ const HomePage = () => {
   const [message, setMessage] = useState<string>("");
   const [messages, setmessages] = useState<actualMessageType[]>([]);
   const socketRef = useRef<Socket | null>(null);
-  const [Username, setUsername] = useState<string>("");
+  const [userName, setUsername] = useState<string>("");
   const [ConfirmUsername, setConfirmUsername] = useState("");
   const [allUsers, setallUsers] = useState<string[]>([]);
+  const [roomId, setRoomId] = useState("");
   const elementref = useRef<HTMLDivElement | null>(null);
   const URL: string = process.env.NEXT_PUBLIC_URL!;
 
@@ -38,6 +40,7 @@ const HomePage = () => {
     const messageData: sentMessageType = {
       message: message,
       timeStamp: new Date().toISOString(),
+      roomId: roomId,
     };
     if (!socketRef.current) {
       return;
@@ -49,17 +52,30 @@ const HomePage = () => {
     if (!URL) return;
     socketRef.current = io(URL);
 
-    socketRef.current.on("take_usernames", (names) => {
-      setallUsers(names);
-    });
-    socketRef.current.on("receive_message", ({ Username, data }) => {
+    socketRef.current.on(
+      "take_usernames_and_roomId",
+      ({ userNames, roomId }: { userNames: string[]; roomId: string }) => {
+        setallUsers(() => userNames);
+        setRoomId(roomId);
+        console.log(userNames, "this is raw usernames before setting");
+        console.log(allUsers, "all users received and set in frontend");
+      },
+    );
+    // socketRef.current.on(
+    //   "take_adminname_and_roomId",
+    //   ({ adminName, roomId }) => {
+    //     setadminName(adminName);
+    //     setRoomId(roomId);
+    //     console.log(adminName, "is adminname", roomId, "is room id");
+    //   },
+    // );
+    socketRef.current.on("receive_message", ({ userName, data }) => {
       const dt = moment(data.timeStamp);
-
       const retrivedMessage: actualMessageType = {
         message: data.message,
         date: dt.format("YYYY-MM-DD"),
         time: dt.format("hh:mm A"),
-        username: Username,
+        userName,
       };
 
       setmessages((prev) => [...prev, retrivedMessage]);
@@ -82,9 +98,10 @@ const HomePage = () => {
       {!ConfirmUsername ? (
         <UsernameInput
           setUsername={setUsername}
-          Username={Username}
+          userName={userName}
           setConfirmUsername={setConfirmUsername}
           socketRef={socketRef}
+          roomId={roomId}
         />
       ) : (
         <ChatUi

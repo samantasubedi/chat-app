@@ -19,6 +19,7 @@ const ChatUi = ({
   setMessage,
   handleSend,
 }: proptype) => {
+  console.log(allUsers);
   return (
     <div className="w-full md:max-w-[60%] bg-white rounded-3xl shadow-2xl  flex flex-col h-[80vh]  ">
       <div className="px-6 py-4 bg-white border-b border-slate-100 flex justify-between items-center">
@@ -66,7 +67,7 @@ const ChatUi = ({
           className=" h-full flex-1 overflow-y-auto p-6 bg-slate-50/50 flex flex-col gap-4  "
         >
           {messages.map((curr, i) => {
-            const isMe = curr.username === ConfirmUsername;
+            const isMe = curr.userName === ConfirmUsername;
             return (
               <div
                 key={i}
@@ -81,7 +82,7 @@ const ChatUi = ({
                 >
                   {!isMe && (
                     <p className="md:text-[10px] text-[9px] font-bold uppercase  md:mb-1 opacity-70 text-blue-900 overflow-hidden">
-                      {curr.username}
+                      {curr.userName}
                     </p>
                   )}
                   <p className="md:text-sm text-[12px] ">{curr.message}</p>
