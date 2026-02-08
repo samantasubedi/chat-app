@@ -24,14 +24,16 @@ io.on("connection", (socket) => {
   socket.on("joinGlobal", (userName) => {
     const roomId = "general";
     socket.data.username = userName;
+    socket.data.roomId = roomId;
     if (!users.has(roomId)) {
       users.set(roomId, []);
     }
     const userNames = users.get(roomId);
-    if(!userNames.includes(userName))
-    {userNames.push(userName);}
-    socket.join("general");
-    io.to("general").emit("take_usernames_and_roomId", {
+    if (!userNames.includes(userName)) {
+      userNames.push(userName);
+    }
+    socket.join(roomId);
+    io.to(roomId).emit("take_usernames_and_roomId", {
       userNames,
       roomId,
     });
@@ -67,12 +69,13 @@ io.on("connection", (socket) => {
     console.log(data, socket.data.username);
   });
   socket.on("disconnect", () => {
-    generalUsernames = generalUsernames.filter(
-      (cur) => socket.data.username !== cur,
-    );
-    io.emit("take_usernames_and_roomId", {
-      userNames: generalUsernames,
-      roomId: "general",
+    const roomId = socket.data.roomId;
+    let userNames = users.get(roomId);
+    userNames = userNames.filter((cur: string) => socket.data.username !== cur);
+    users.set(roomId, userNames);
+    io.to(roomId).emit("take_usernames_and_roomId", {
+      userNames: users.get(roomId),
+      roomId,
     });
     console.log("user disconnected", socket.id);
   });
