@@ -1,5 +1,6 @@
 import express from "express";
 import http from "http";
+import { nanoid } from "nanoid";
 import { Request, Response } from "express";
 import { Server } from "socket.io";
 const app = express();
@@ -13,25 +14,54 @@ const server = http.createServer(app); //Socket.IO works on top of a raw HTTP se
 const io = new Server(server, { cors: { origin: "*" } }); //creates a Socket.IO server attached to our HTTP server
 let generalUsernames: string[] = [];
 let users = new Map();
+
 io.on("connection", (socket) => {
   //Listens for new clients connecting via Socket.IO. Each connected client gets a socket object,
   //  This function runs once per connected client.
   //  The "connection" string is a event name,"connection" is a special built-in Socket.IO event that fires whenever a new client connects to the server.
   console.log("user connected", socket.id);
-  socket.on("join", (Username) => {
-    socket.join("general");
-    socket.data.username = Username;
-    generalUsernames.push(Username);
-    users.set("general", generalUsernames);
 
+  socket.on("joinGlobal", (userName) => {
+    const roomId = "general";
+    socket.data.username = userName;
+    if (!users.has(roomId)) {
+      users.set(roomId, []);
+    }
+    const userNames = users.get(roomId);
+    if(!userNames.includes(userName))
+    {userNames.push(userName);}
+    socket.join("general");
     io.to("general").emit("take_usernames_and_roomId", {
-      names: generalUsernames,
-      roomId: "general",
+      userNames,
+      roomId,
+    });
+  });
+
+  socket.on("createRoom", (userName) => {
+    let roomId = nanoid(5);
+    users.set(roomId, []);
+    const userNames = users.get(roomId);
+    userNames.push(userName);
+    console.log(users.get(roomId), "this is hte corresponding array of names");
+    socket.data.username = userName;
+    socket.join(roomId);
+    io.to(roomId).emit("take_usernames_and_roomId", {
+      userNames: users.get(roomId),
+      roomId,
+    });
+  });
+  socket.on("joinRoom", ({ userName, roomId }) => {
+    socket.join(roomId);
+    const userNames = users.get(roomId);
+    userNames.push(userName);
+    io.to(roomId).emit("take_usernames_and_roomId", {
+      userNames,
+      roomId,
     });
   });
   socket.on("send_message", (data) => {
     io.to(data.roomId).emit("receive_message", {
-      Username: socket.data.username,
+      userName: socket.data.username,
       data,
     });
     console.log(data, socket.data.username);
@@ -41,7 +71,7 @@ io.on("connection", (socket) => {
       (cur) => socket.data.username !== cur,
     );
     io.emit("take_usernames_and_roomId", {
-      names: generalUsernames,
+      userNames: generalUsernames,
       roomId: "general",
     });
     console.log("user disconnected", socket.id);
