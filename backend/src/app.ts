@@ -12,7 +12,7 @@ app.get("/", (req: Request, res: Response) => {
 
 const server = http.createServer(app); //Socket.IO works on top of a raw HTTP server.Here, we’re creating a Node.js HTTP server that wraps the Express app.
 const io = new Server(server, { cors: { origin: "*" } }); //creates a Socket.IO server attached to our HTTP server
-let generalUsernames: string[] = [];
+
 let users = new Map();
 
 io.on("connection", (socket) => {
@@ -44,8 +44,10 @@ io.on("connection", (socket) => {
     users.set(roomId, []);
     const userNames = users.get(roomId);
     userNames.push(userName);
+    users.set(roomId, userNames);
     console.log(users.get(roomId), "this is hte corresponding array of names");
     socket.data.username = userName;
+    socket.data.roomId = roomId;
     socket.join(roomId);
     io.to(roomId).emit("take_usernames_and_roomId", {
       userNames: users.get(roomId),
@@ -53,13 +55,23 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("joinRoom", ({ userName, roomId }) => {
-    socket.join(roomId);
-    const userNames = users.get(roomId);
-    userNames.push(userName);
-    io.to(roomId).emit("take_usernames_and_roomId", {
-      userNames,
-      roomId,
-    });
+    console.log("username is ", userName, "roomid is ", roomId);
+    console.log(users.has(roomId), "thissssssssssssssssssssssssssssssssssssss");
+    console.log(users.get(roomId), "these are the names");
+    if (users.has(roomId)) {
+      socket.join(roomId);
+      const userNames = users.get(roomId);
+      userNames.push(userName);
+      socket.data.username = userName;
+      socket.data.roomId = roomId;
+      console.log(users.get(roomId), "are all users connected");
+      io.to(roomId).emit("take_usernames_and_roomId", {
+        userNames: users.get(roomId),
+        roomId,
+      });
+    } else {
+      io.emit("invalidRoomId");
+    }
   });
   socket.on("send_message", (data) => {
     io.to(data.roomId).emit("receive_message", {
@@ -70,14 +82,19 @@ io.on("connection", (socket) => {
   });
   socket.on("disconnect", () => {
     const roomId = socket.data.roomId;
-    let userNames = users.get(roomId);
-    userNames = userNames.filter((cur: string) => socket.data.username !== cur);
-    users.set(roomId, userNames);
-    io.to(roomId).emit("take_usernames_and_roomId", {
-      userNames: users.get(roomId),
-      roomId,
-    });
-    console.log("user disconnected", socket.id);
+    if (roomId) {
+      let userNames = users.get(roomId);
+      console.log(userNames);
+      userNames = userNames.filter(
+        (cur: string) => socket.data.username !== cur,
+      );
+      users.set(roomId, userNames);
+      io.to(roomId).emit("take_usernames_and_roomId", {
+        userNames: users.get(roomId),
+        roomId,
+      });
+      console.log("user disconnected", socket.id);
+    }
   });
 });
 server.listen(4000, () => {
