@@ -9,6 +9,7 @@ import UsernameInput from "@/components/UsernameInput";
 import moment from "moment";
 import ChatUi from "@/components/ChatUi";
 import { url } from "inspector";
+import RoomCodeUi from "@/components/ui/RoomCodeUi";
 type sentMessageType = {
   message: string;
   timeStamp: string | Date;
@@ -31,6 +32,7 @@ const HomePage = () => {
   const [allUsers, setallUsers] = useState<string[]>([]);
   const [roomId, setRoomId] = useState("");
   const elementref = useRef<HTMLDivElement | null>(null);
+  const [showIdInput, setShowIdInput] = useState(false);
   const URL: string = process.env.NEXT_PUBLIC_URL!;
 
   const handleSend = () => {
@@ -61,14 +63,7 @@ const HomePage = () => {
         console.log(allUsers, "all users received and set in frontend");
       },
     );
-    // socketRef.current.on(
-    //   "take_adminname_and_roomId",
-    //   ({ adminName, roomId }) => {
-    //     setadminName(adminName);
-    //     setRoomId(roomId);
-    //     console.log(adminName, "is adminname", roomId, "is room id");
-    //   },
-    // );
+
     socketRef.current.on("receive_message", ({ userName, data }) => {
       const dt = moment(data.timeStamp);
       const retrivedMessage: actualMessageType = {
@@ -102,7 +97,12 @@ const HomePage = () => {
           setConfirmUsername={setConfirmUsername}
           socketRef={socketRef}
           roomId={roomId}
+          setRoomId={setRoomId}
+          showIdInput={showIdInput}
+          setShowIdInput={setShowIdInput}
         />
+      ) : showIdInput ? (
+        <RoomCodeUi roomId={roomId} setRoomId={setRoomId} userName={ConfirmUsername} socketRef={socketRef}/>
       ) : (
         <ChatUi
           ConfirmUsername={ConfirmUsername}
@@ -112,6 +112,7 @@ const HomePage = () => {
           message={message}
           setMessage={setMessage}
           handleSend={handleSend}
+          roomId={roomId}
         />
       )}
     </div>

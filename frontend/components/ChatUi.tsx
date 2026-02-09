@@ -9,6 +9,7 @@ type proptype = {
   message: string;
   setMessage: React.Dispatch<SetStateAction<string>>;
   handleSend: () => void;
+  roomId:string
 };
 const ChatUi = ({
   ConfirmUsername,
@@ -18,6 +19,7 @@ const ChatUi = ({
   message,
   setMessage,
   handleSend,
+  roomId
 }: proptype) => {
   console.log(allUsers);
   return (
@@ -29,6 +31,9 @@ const ChatUi = ({
             Online
           </p>
         </div>
+        <div className="flex justify-center gap-5 text-slate-500">
+        <span className="font-bold">Room ID </span>
+        <span className="font-bold">{roomId}</span></div>
         <span className="text-sm text-slate-400 font-medium">
           @{ConfirmUsername}
         </span>
