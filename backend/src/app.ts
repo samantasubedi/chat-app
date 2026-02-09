@@ -55,9 +55,6 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("joinRoom", ({ userName, roomId }) => {
-    console.log("username is ", userName, "roomid is ", roomId);
-    console.log(users.has(roomId), "thissssssssssssssssssssssssssssssssssssss");
-    console.log(users.get(roomId), "these are the names");
     if (users.has(roomId)) {
       socket.join(roomId);
       const userNames = users.get(roomId);
@@ -69,8 +66,10 @@ io.on("connection", (socket) => {
         userNames: users.get(roomId),
         roomId,
       });
+      io.emit("room found");
     } else {
-      io.emit("invalidRoomId");
+      console.log(users.get(roomId), "room not found");
+      io.emit("invalid roomId");
     }
   });
   socket.on("send_message", (data) => {
