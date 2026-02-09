@@ -10,6 +10,7 @@ import moment from "moment";
 import ChatUi from "@/components/ChatUi";
 import { url } from "inspector";
 import RoomCodeUi from "@/components/ui/RoomCodeUi";
+import { toast, ToastContainer } from "react-toastify";
 type sentMessageType = {
   message: string;
   timeStamp: string | Date;
@@ -33,6 +34,8 @@ const HomePage = () => {
   const [roomId, setRoomId] = useState("");
   const elementref = useRef<HTMLDivElement | null>(null);
   const [showIdInput, setShowIdInput] = useState(false);
+  const [loader, setLoader] = useState(false);
+
   const URL: string = process.env.NEXT_PUBLIC_URL!;
 
   const handleSend = () => {
@@ -59,10 +62,15 @@ const HomePage = () => {
       ({ userNames, roomId }: { userNames: string[]; roomId: string }) => {
         setallUsers(() => userNames);
         setRoomId(roomId);
-        console.log(userNames, "this is raw usernames before setting");
-        console.log(allUsers, "all users received and set in frontend");
       },
     );
+    socketRef.current.on("invalid roomId", () => {
+      setLoader(false);
+      toast.error("Room not found");
+    });
+    socketRef.current.on("room found", () => {
+      setShowIdInput(false);
+    });
 
     socketRef.current.on("receive_message", ({ userName, data }) => {
       const dt = moment(data.timeStamp);
@@ -90,6 +98,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center md:p-4 font-sans">
+      <ToastContainer />
       {!ConfirmUsername ? (
         <UsernameInput
           setUsername={setUsername}
@@ -102,7 +111,13 @@ const HomePage = () => {
           setShowIdInput={setShowIdInput}
         />
       ) : showIdInput ? (
-        <RoomCodeUi roomId={roomId} setRoomId={setRoomId} userName={ConfirmUsername} socketRef={socketRef}/>
+        <RoomCodeUi
+          userName={ConfirmUsername}
+          socketRef={socketRef}
+          setShowIdInput={setShowIdInput}
+          loader={loader}
+          setLoader={setLoader}
+        />
       ) : (
         <ChatUi
           ConfirmUsername={ConfirmUsername}
